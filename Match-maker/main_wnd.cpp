@@ -55,9 +55,9 @@ void MainWnd::InitializeUIComponents()
 
 void MainWnd::InitializeUsersTable()
 {
-	ui->tableWidget->setRowCount(1);
+	//ui->tableWidget->setRowCount(1);
 	ui->tableWidget->setColumnCount(4);
-	ui->tableWidget->setHorizontalHeaderLabels(m_TableHeader);
+	//ui->tableWidget->setHorizontalHeaderLabels(m_TableHeader);
 	ui->tableWidget->verticalHeader()->setVisible(true);
 	ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -81,12 +81,23 @@ void MainWnd::InitializeUsersTable()
 	ui->tableWidget->verticalHeader()->setStyleSheet(
 		"QHeaderView::section {"
 		"    border: 1px solid #d0d0d0;"
-		"    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #f6f7fa, stop:1 #d0d0d0);"
+		"    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f6f7fa, stop:1 #d0d0d0);"
 		"    padding: 4px;"
 		"    margin: 0;"
 		"}"
 		"QHeaderView::section:pressed {"
-		"    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #d0d0d0, stop:1 #f6f7fa);"
+		"    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d0d0d0, stop:1 #f6f7fa);"
+		"}"
+	);
+	ui->treeWidget->header()->setStyleSheet(
+		"QHeaderView::section {"
+		"    border: 1px solid #d0d0d0;"
+		"    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f6f7fa, stop:1 #d0d0d0);"
+		"    padding: 4px;"
+		"    margin: 0;"
+		"}"
+		"QHeaderView::section:pressed {"
+		"    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d0d0d0, stop:1 #f6f7fa);"
 		"}"
 	);
 }
