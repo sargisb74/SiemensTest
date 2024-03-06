@@ -55,9 +55,8 @@ void MainWnd::InitializeUIComponents()
 
 void MainWnd::InitializeUsersTable()
 {
-	//ui->tableWidget->setRowCount(1);
 	ui->tableWidget->setColumnCount(4);
-	//ui->tableWidget->setHorizontalHeaderLabels(m_TableHeader);
+	ui->tableWidget->setHorizontalHeaderLabels(m_TableHeader);
 	ui->tableWidget->verticalHeader()->setVisible(true);
 	ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
