@@ -28,14 +28,12 @@ class MatchMaker: public QObject
 Q_OBJECT
 
 public:
-	map<QString, unique_ptr<Player>> *m_players{};
-
 	~MatchMaker() override
 	{
 		m_timer->stop();
 	};
 
-	void SetPlayers(map<QString, unique_ptr<Player>> *players)
+	void SetPlayers(QMap<QString, QSharedPointer<Player>> *players)
 	{
 		m_players = players;
 	}
@@ -50,46 +48,19 @@ public:
 		m_treeWidget = treeWidget;
 	}
 
-	void Start()
-	{
-		m_timer = new QTimer(this);
-		connect(m_timer, SIGNAL(timeout()), this, SLOT(RunMatches()));
-		m_timer->start(10);
-	}
+	void Start();
 
-	void Initialise(map<QString, unique_ptr<Player>> *players, UsersDB &userDB, QTreeWidget *treeWidget)
-	{
-		m_players = players;
-		m_userDB = &userDB;
-		m_treeWidget = treeWidget;
+	void Initialise(QMap<QString, QSharedPointer<Player>> *players, UsersDB &userDB, QTreeWidget *treeWidget);
 
-		std::transform(
-			m_players->begin(),
-			m_players->end(),
-			std::back_inserter(m_users),
-			[](const std::map<QString, unique_ptr<Player>>::value_type &pair)
-			{ return pair.first; });
-
-		Start();
-	}
-
-	void InitUsers()
-	{
-		m_users.clear();
-		std::transform(
-			m_players->begin(),
-			m_players->end(),
-			std::back_inserter(m_users),
-			[](const std::map<QString, unique_ptr<Player>>::value_type &pair)
-			{ return pair.first; });
-	}
+	void InitUsers(QMap<QString, QSharedPointer<Player>> *);
 
 private:
 
 	QTimer *m_timer = nullptr;
 	UsersDB *m_userDB{};
 	QTreeWidget *m_treeWidget{};
-	std::vector<QString> m_users;
+	QVector<QString> m_users;
+	QMap<QString, QSharedPointer<Player>> *m_players{};
 
 	void performBackgroundTask();
 	void UpdateWinner(Player &);

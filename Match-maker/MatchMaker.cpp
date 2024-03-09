@@ -7,11 +7,12 @@
 #include <QTreeWidgetItem>
 #include <QProcess>
 #include <QDir>
+#include <QThread>
 #include "MatchMaker.h"
 
 void MatchMaker::RunMatches()
 {
-	performBackgroundTask();
+	//performBackgroundTask();
 }
 
 void MatchMaker::performBackgroundTask()
@@ -30,8 +31,8 @@ void MatchMaker::performBackgroundTask()
 				for (const QString &user: list) {
 					Player *secondPlayer = ((*m_players)[user]).get();
 					if (secondPlayer != nullptr && (secondPlayer->GetState() == State::WAITING)) {
-						firstPlayer->SetState(State::Busy);
-						firstPlayer->SetState(State::Busy);
+						firstPlayer->SetState(State::BUSY);
+						firstPlayer->SetState(State::BUSY);
 						std::cout << firstPlayer->GetUseName().toStdString() << " and " <<
 								  secondPlayer->GetUseName().toStdString()
 								  << " are playing " << firstPlayer->GetCurrentGame().toStdString() <<
@@ -99,4 +100,44 @@ GameResult MatchMaker::ExecuteGame(const QString &game)
 		cerr << "Error occurred during game execution: " << stdError.toStdString() << endl;
 	}
 	return GameResult(stdOutput.toInt());
+}
+
+void MatchMaker::Start()
+{
+	m_timer = new QTimer(this);
+	connect(m_timer, SIGNAL(timeout()), this, SLOT(RunMatches()));
+	m_timer->start(10);
+}
+
+void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>> *players, UsersDB &userDB, QTreeWidget *treeWidget)
+{
+	m_players = players;
+	m_userDB = &userDB;
+	m_treeWidget = treeWidget;
+
+	std::transform(
+		m_players->begin(),
+		m_players->end(),
+		std::back_inserter(m_users),
+		[](const QSharedPointer<Player>& player) -> QString {
+			QString userName = player.get() != NULL ? player->GetUseName() : "";
+			return (player.get() != NULL && !player->GetPreferredGames().isEmpty()) ? userName : QString();  // Ignore empty strings
+		});
+
+	Start();
+}
+
+
+void MatchMaker::InitUsers(QMap<QString, QSharedPointer<Player>> *players)
+{
+	m_players = players;
+
+	std::transform(
+		m_players->begin(),
+		m_players->end(),
+		std::back_inserter(m_users),
+		[](const QSharedPointer<Player>& player) -> QString {
+			QString userName = player.get() != NULL ? player->GetUseName() : "";
+			return (player.get() != NULL && !player->GetPreferredGames().isEmpty()) ? userName : QString();  // Ignore empty strings
+		});
 }

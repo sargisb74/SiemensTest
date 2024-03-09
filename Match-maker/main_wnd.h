@@ -17,6 +17,8 @@
 #include "UsersDB.h"
 #include "Player.h"
 #include "MatchMaker.h"
+#include "PlayersModel.h"
+#include "PlayersModelDelegate.h"
 
 
 using namespace std;
@@ -63,7 +65,7 @@ class MainWnd: public QMainWindow
 Q_OBJECT
 
 public:
-	explicit MainWnd(QWidget *parent = nullptr);
+	explicit MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mMyDelegate);
 
 	~MainWnd() override;
 
@@ -77,21 +79,27 @@ private:
 
 	AddUserDialog m_addUserDlg;
 	unique_ptr<UsersDB> m_userDB = make_unique<UsersDB>(new UsersDB);
-	map<QString, unique_ptr<Player>> m_players;
+	QMap<QString, QSharedPointer<Player>> m_players;
 	MatchMaker m_maker;
+
+	PlayersModel *m_model;
+	PlayersModelDelegate *m_myDelegate;
 
 private slots:
 	void on_actionSave_the_Dashboard_to_File_triggered();
 	void on_actionShow_Hide_Dashboard_triggered();
 	void on_actionShow_Hide_User_List_triggered();
-	void on_tableWidget_cellClicked(int, int);
-	void on_filterPushButton_clicked();
+	//void on_tableWidget_cellClicked(int, int);
+	[[maybe_unused]] void on_filterPushButton_clicked();
 
 	void on_action_Add_user_triggered();
 	void on_action_Remove_user_triggered();
 	void slotCustomMenuRequested(const QPoint &);
 	void sortIndicatorChangedSlot(int col, Qt::SortOrder);
 	void ShowError();
+
+    void on_tableView_clicked(const QModelIndex &index);
+
 
 signals:
 	void aboutToClose();
@@ -105,6 +113,7 @@ private:
 	void InitializeUsersTable();
 	void ConnectSignalsToSlots();
 	void PopulateUsersTables();
+	void PopulateUsers();
 	void AddUser();
 	void addTreeRoot(const QString &, const QString &);
 	static void addTreeChild(QTreeWidgetItem *, const QString &, const QString &);
@@ -113,6 +122,7 @@ private:
 	bool ProcessItemToJson(QTreeWidgetItem *, QJsonObject &);
 	QJsonObject toJsonRecursive(QTreeWidgetItem *, bool child = false);
 	QJsonArray toJsonArray(QTreeWidget *treeWidget);
+	int GetLastItemSection();
 };
 
 

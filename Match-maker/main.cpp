@@ -4,7 +4,7 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
-    MainWnd wnd;
+    MainWnd wnd(nullptr, nullptr, nullptr);
     wnd.show();
 
     return QApplication::exec();

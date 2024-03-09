@@ -7,7 +7,7 @@
 
 enum class State
 {
-	FREE, WAITING, Busy
+	FREE, WAITING, BUSY
 };
 
 #include <QString>
@@ -19,17 +19,21 @@ class Player: public QObject
 Q_OBJECT
 public:
 	Player() = default;
-	Player(QString user, const QMap<QString, int> &&gameToRating)
-		: m_userName(std::move(user)), m_ratingByGame(gameToRating)
-	{
-		m_timerRequest = new QTimer(this);
-		connect(m_timerRequest, SIGNAL(timeout()), this, SLOT(requestMatch()));
-		m_timerRequest->start(2000);
-	}
+	Player(QString user, QString firstName, QString lastName, const QMap<QString, int> &&gameToRating);
 
 	QString GetUseName()
 	{
 		return m_userName;
+	}
+
+	QString GetFirstName()
+	{
+		return m_firstName;
+	}
+
+	QString GetLastName()
+	{
+		return m_lastName;
 	}
 
 	State GetState()
@@ -57,16 +61,20 @@ public:
 		m_ratingByGame[game] = rating;
 	}
 
-	~Player() override
+	QString GetPreferredGames()
 	{
-		m_timerRequest->stop();
-		delete m_timerRequest;
-	};
+		QStringList keys = m_ratingByGame.keys();
+		return keys.join(',');
+	}
+
+	~Player() override;
 
 private:
 
 private:
 	QString m_userName;
+	QString m_firstName;
+	QString m_lastName;
 	QString m_currentGame;
 	QMap<QString, int> m_ratingByGame;
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1241</width>
-    <height>760</height>
+    <width>1070</width>
+    <height>731</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -28,63 +28,64 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QHBoxLayout" name="horizontalLayout_parent">
          <item>
           <widget class="QTreeWidget" name="treeWidget">
+           <attribute name="headerCascadingSectionResizes">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerMinimumSectionSize">
+            <number>19</number>
+           </attribute>
+           <attribute name="headerDefaultSectionSize">
+            <number>100</number>
+           </attribute>
            <column>
             <property name="text">
              <string notr="true">Game</string>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
             </property>
            </column>
            <column>
             <property name="text">
              <string>User</string>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
            </column>
            <column>
             <property name="text">
              <string>Rating</string>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+             </font>
+            </property>
            </column>
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout" name="verticalLayout_table">
            <item>
-            <widget class="QTableWidget" name="tableWidget">
-             <property name="verticalScrollBarPolicy">
-              <enum>Qt::ScrollBarAsNeeded</enum>
+            <widget class="QTableView" name="tableView">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
-             <property name="columnCount">
-              <number>4</number>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
              </property>
-             <attribute name="verticalHeaderDefaultSectionSize">
-              <number>30</number>
-             </attribute>
-             <column>
-              <property name="text">
-               <string>Username</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>First name</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Last name</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Preferred games</string>
-              </property>
-             </column>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <layout class="QHBoxLayout" name="horizontalLayout_filter">
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
@@ -115,36 +116,14 @@
      <widget class="QLineEdit" name="status_line_edit"/>
     </item>
    </layout>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>2</width>
-      <height>2</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2"/>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>2</width>
-      <height>2</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_3"/>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1241</width>
-     <height>24</height>
+     <width>1070</width>
+     <height>37</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
