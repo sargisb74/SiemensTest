@@ -25,6 +25,8 @@ MainWnd::MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mM
 	: QMainWindow(parent), ui(new Ui::MainWnd), m_model(mModel), m_myDelegate(mMyDelegate)
 {
 	ui->setupUi(this);
+	m_updateVHeaderSize = new QTimer(this);
+	m_updateVHeaderSize->start(20);
 
 	InitializeUIComponents();
 
@@ -56,8 +58,8 @@ void MainWnd::InitializeUIComponents()
 void MainWnd::InitializeUsersTable()
 {
 	PopulateUsers();
-	m_model = new PlayersModel(1, 4, this);
 	auto* proxyModel = new PlayersSortFilterProxyModel(this);
+	m_model = new PlayersModel(1, 4, this, proxyModel);
 
 	proxyModel->setSourceModel(m_model);
 
@@ -133,10 +135,12 @@ void MainWnd::ConnectSignalsToSlots()
 	connect(removeUserMenuItem, SIGNAL(triggered()), this,
 		SLOT(on_action_Remove_user_triggered()));
 	connect(m_timerShowError, SIGNAL(timeout()), this, SLOT(ShowError()));
+	connect(m_updateVHeaderSize, SIGNAL(timeout()), this, SLOT(UpdateVHeaderSize()));
 }
 
 void MainWnd::AddUser()
 {
+	PlayersSortFilterProxyModel* pModel = dynamic_cast<PlayersSortFilterProxyModel*>(ui->tableView->model());
 	if (m_addUserDlg.exec() == QDialog::Accepted)
 	{
 		ui->tableView->setSortingEnabled(false);
@@ -181,8 +185,7 @@ void MainWnd::AddUser()
 		}
 
 		m_model->insertRow(m_model->rowCount(QModelIndex()));
-
-		int newRow = m_model->rowCount(QModelIndex()) - 1;
+		int newRow = pModel->rowCount() + 1;//m_model->rowCount(QModelIndex()) - 1;
 		QString userName = m_addUserDlg.getUsername();
 		QSharedPointer<Player> player = QSharedPointer<Player>::create(
 			m_addUserDlg.getUsername(),
@@ -190,19 +193,28 @@ void MainWnd::AddUser()
 			m_addUserDlg.getLastName(),
 			std::move(gameToRating));
 		m_model->appendData(player, newRow);
+		pModel->invalidate();
+		for (int i = 0; i < pModel->rowCount(); i++)
+		{
+			QModelIndex proxyIndex = pModel->index(i, 0);
+
+			// Get the item text from the proxy model
+			QString username = pModel->data(proxyIndex, Qt::DisplayRole).toString();
+		}
 
 		m_players[userName] = player;
 		m_maker.InitUsers(&m_players);
 
 		int plcount = m_model->GetPlayersCount();
-		qDebug() << GetLastItemSection() << "   " << m_model->rowCount() - 1 << " Players " << m_model->GetPlayersCount();
 		m_model->SetLastItemSection(GetLastItemSection());
-		ui->tableView->verticalHeader()->moveSection(m_model->GetLastItemRowToSection().second, /*m_model->rowCount()*/plcount - 1);
-		qDebug() << "AddUser 2  ";
+		ui->tableView->verticalHeader()
+			->moveSection(m_model->GetLastItemRowToSection(), /*m_model->rowCount()*/plcount - 1);
 		ui->tableView->setSpan(m_model->rowCount() - 1, 1, 1, m_model->columnCount());
 	}
 
 	ui->treeWidget->expandAll();
+
+	m_model->SetVerticalHeaderSize(pModel->rowCount());
 }
 
 void MainWnd::PopulateUsers()
@@ -348,6 +360,7 @@ void MainWnd::on_action_Add_user_triggered()
 
 void MainWnd::on_action_Remove_user_triggered()
 {
+	PlayersSortFilterProxyModel* pModel = dynamic_cast<PlayersSortFilterProxyModel*>(ui->tableView->model());
 	ui->tableView->setSortingEnabled(false);
 	QList<QModelIndex> selectedIndexes = ui->tableView->selectionModel()->selectedIndexes();
 	QSet<int> selectedRows;
@@ -381,8 +394,6 @@ void MainWnd::on_action_Remove_user_triggered()
 
 		m_model->SetLastItemSection(GetLastItemSection());
 
-		qDebug() << "In Remove" << GetLastItemSection();
-
 		QList<QTreeWidgetItem*> items = ui->treeWidget->
 			findItems(userName, Qt::MatchExactly | Qt::MatchRecursive, 1);
 			foreach(QTreeWidgetItem* item, items)
@@ -397,6 +408,7 @@ void MainWnd::on_action_Remove_user_triggered()
 			}
 		RemoveFromPlayers(userName);
 	}
+	m_model->SetVerticalHeaderSize(pModel->rowCount());
 }
 
 [[maybe_unused]] void MainWnd::on_actionShow_Hide_Dashboard_triggered()
@@ -472,10 +484,7 @@ void MainWnd::on_actionSave_the_Dashboard_to_File_triggered()
 
 void MainWnd::on_tableView_clicked(const QModelIndex& index)
 {
-	//if (index.column() == 0 and index.row() == ui->tableView->model()->rowCount() - 1)
-	int section = m_model->GetLastItemRowToSection().second;
-	qDebug() << "In Click  " << GetLastItemSection() << " row  " << index.row() << " section " << section;
-	if (index.column() == 0 and index.row() == section)
+	if (index.column() == 0 and index.row() == m_model->GetLastItemRowToSection())
 	{
 		AddUser();
 	}
@@ -485,32 +494,25 @@ void MainWnd::on_filterPushButton_clicked()
 {
 	QString filter = ui->filterLineEdit->text();
 	PlayersSortFilterProxyModel* pModel = dynamic_cast<PlayersSortFilterProxyModel*>(ui->tableView->model());
+	pModel->setFilterRegularExpression(filter);
 
 	if (filter.trimmed().isEmpty())
 	{
 		pModel->setFilterRegularExpression(filter);
-		QAbstractItemModel* headerModel = ui->tableView->verticalHeader()->model();
-
-		if (headerModel)
-		{
-			for (int i = 0; i < headerModel->rowCount(); i++)
-			{
-				QVariant headerData = headerModel->headerData(i, Qt::Vertical, Qt::DisplayRole);
-				if (headerData.toString().isEmpty())
-				{
-					ui->tableView->verticalHeader()->moveSection(i, pModel->rowCount() - 1);
-					m_model->SetLastItemSection(i);
-					break;
-				}
-			}
-			// Use headerData as needed
-		}
+		m_model->SetVerticalHeaderSize(pModel->rowCount());
+		int lastSection = GetLastItemSection();
+		ui->tableView->verticalHeader()->moveSection(lastSection, pModel->rowCount() - 1);
+		m_model->SetLastItemSection(lastSection);
 	}
 	else
 	{
-			qDebug() << m_model->GetLastItemText();
 		pModel->setFilterRegularExpression("(" + filter + "|\\" +
 			m_model->GetLastItemText() + ")");
+
+		int lastSection = GetLastItemSection();
+		ui->tableView->verticalHeader()->moveSection(lastSection, pModel->rowCount() - 1);
+		m_model->SetLastItemSection(pModel->rowCount() - 1);
+		m_model->SetVerticalHeaderSize(pModel->rowCount());
 	}
 }
 
@@ -519,7 +521,13 @@ void MainWnd::ShowError()
 	ui->status_line_edit->hide();
 }
 
-int MainWnd::GetLastItemSection() {
+void MainWnd::UpdateVheaderSize() {
+	PlayersSortFilterProxyModel* pModel = dynamic_cast<PlayersSortFilterProxyModel*>(ui->tableView->model());
+	m_model->SetVerticalHeaderSize(pModel->rowCount());
+}
+
+int MainWnd::GetLastItemSection()
+{
 	QAbstractItemModel* headerModel = ui->tableView->verticalHeader()->model();
 
 	if (headerModel)
@@ -535,7 +543,7 @@ int MainWnd::GetLastItemSection() {
 		// Use headerData as needed
 	}
 
-	return m_model->GetLastItemRowToSection().second;
+	return m_model->GetLastItemRowToSection();
 }
 
 

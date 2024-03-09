@@ -23,9 +23,10 @@ SOFTWARE.
 
 #include <QTableView>
 #include "PlayersModel.h"
+#include "PlayersSortFilterProxyModel.h"
 
-[[maybe_unused]] PlayersModel::PlayersModel(QObject* parent)
-	: QStandardItemModel((QObject*)parent)
+[[maybe_unused]] PlayersModel::PlayersModel(QObject* parent, PlayersSortFilterProxyModel* proxyModel)
+	: QStandardItemModel((QObject*)parent), m_proxyModel(proxyModel)
 {
 	// Just some random test data
 	m_timer = new QTimer(this);
@@ -33,12 +34,12 @@ SOFTWARE.
 	m_timer->start(20);
 }
 
-PlayersModel::PlayersModel(int rows, int columns, QObject* parent)
-	: QStandardItemModel(rows, columns, (QObject*)parent)
+PlayersModel::PlayersModel(int rows, int columns, QObject* parent, PlayersSortFilterProxyModel* proxyModel)
+	: QStandardItemModel(rows, columns, (QObject*)parent), m_proxyModel(proxyModel)
 {
 	m_timer = new QTimer(this);
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(requestVHeaderUpdate()));
-	m_timer->start(10);
+	m_timer->start(20);
 };
 
 // Create a method to populate the m_model with data:
@@ -59,34 +60,45 @@ void PlayersModel::populateData(const QVector<QSharedPointer<Player>>& players)
 		}
 	}
 
-	m_lastItemRowToSection.second = m_players.size() - 1;
+	m_lastItemRowToSection = m_players.size() - 1;
 
 	m_verticalHeaderCounter = 0;
+	m_verticalHeaderSize = m_players.size();;
 }
 
-void PlayersModel::updateVerticalHeader( ) {
+void PlayersModel::updateVerticalHeader()
+{
 	m_verticalHeaderCounter = 0;
+
+	//qDebug() << "PlayersModel::updateVerticalHeader 1" << m_verticalHeaderSize;
+
 	emit headerDataChanged(Qt::Vertical, 0, rowCount() - 1);
 }
 
 void PlayersModel::appendData(const QSharedPointer<Player>& player, int row)
 {
 	// Insert player at the specified row
-	QList<QSharedPointer<Player>>::iterator it = m_players.begin() + row;
+	QList<QSharedPointer<Player>>::iterator it = m_players.begin() + rowCount() - 1;
 	m_players.insert(it, player);
 	m_verticalHeaderCounter = 0;
 
 	// Set data in the newly added row
-	setData(index(row, 0), player->GetUseName());
+	/*setData(index(row, 0), player->GetUseName());
 	setData(index(row, 1), player->GetFirstName());
 	setData(index(row, 2), player->GetLastName());
-	setData(index(row, 3), player->GetUseName());
+	setData(index(row, 3), player->GetUseName());*/
+
+	/*m_proxyModel->setData(index(row, 0), "");
+	m_proxyModel->setData(index(row, 1), "");
+	m_proxyModel->setData(index(row, 2), "");
+	m_proxyModel->setData(index(row, 3), "");*/
 }
 
 void PlayersModel::removeData(const QString& username)
 {
 	auto it = std::remove_if(m_players.begin(), m_players.end(),
-		[username](const QSharedPointer<Player>& player) {
+		[username](const QSharedPointer<Player>& player)
+		{
 			return player->GetUseName() == username;
 		});
 
@@ -112,7 +124,7 @@ QVariant PlayersModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 	}
 
-	if(index.row() >= m_players.size())
+	if (index.row() >= m_players.size())
 	{
 		return QVariant();
 	}
@@ -161,7 +173,9 @@ QVariant PlayersModel::headerData(int section, Qt::Orientation orientation, int 
 
 		if (orientation == Qt::Vertical && section != this->rowCount() - 1)
 		{
-			if(m_verticalHeaderCounter == m_players.size() - 1) {
+			if (m_verticalHeaderCounter == m_verticalHeaderSize - 1)
+			{
+				//if(m_verticalHeaderCounter == m_players.size() - 1) {
 				m_verticalHeaderCounter = 0;
 			}
 			return QString::number(m_verticalHeaderCounter++);

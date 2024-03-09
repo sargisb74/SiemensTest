@@ -12,7 +12,7 @@
 
 void MatchMaker::RunMatches()
 {
-	//performBackgroundTask();
+	performBackgroundTask();
 }
 
 void MatchMaker::performBackgroundTask()

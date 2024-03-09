@@ -97,6 +97,7 @@ private slots:
 	void slotCustomMenuRequested(const QPoint &);
 	void sortIndicatorChangedSlot(int col, Qt::SortOrder);
 	void ShowError();
+	void UpdateVheaderSize();
 
     void on_tableView_clicked(const QModelIndex &index);
 
@@ -107,6 +108,7 @@ signals:
 
 private:
 	QTimer *m_timerShowError;
+	QTimer *m_updateVHeaderSize;
 
 private:
 	void InitializeUIComponents();
