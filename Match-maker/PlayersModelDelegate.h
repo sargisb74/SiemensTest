@@ -12,19 +12,19 @@ class PlayersModelDelegate : public QItemDelegate
 {
 Q_OBJECT
 public:
-	explicit PlayersModelDelegate(QObject *parent = 0);
+    explicit PlayersModelDelegate(QObject* parent = 0);
 
-	// Create Editor when we construct PlayersModelDelegate
-	QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    // Create Editor when we construct PlayersModelDelegate
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 
-	// Then, we set the Editor
-	void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    // Then, we set the Editor
+    void setEditorData(QWidget* editor, const QModelIndex& index) const;
 
-	// When we modify data, this m_model reflect the change
-	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+    // When we modify data, this m_model reflect the change
+    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 
-	// Give the SpinBox the info on size and location
-	void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    // Give the SpinBox the info on size and location
+    void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 
 signals:
 

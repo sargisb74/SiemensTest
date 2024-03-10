@@ -26,105 +26,109 @@ using namespace std;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
-class MainWnd;
+    class MainWnd;
 }
 QT_END_NAMESPACE
 
-class QCustomTableWidgetItem: public QTableWidgetItem
+class QCustomTableWidgetItem : public QTableWidgetItem
 {
 public:
-	QCustomTableWidgetItem() = default;
-	explicit QCustomTableWidgetItem(const QString &text, int type = Type)
-		: QTableWidgetItem(text, type)
-	{};
-	bool operator<(const QTableWidgetItem &other) const override
-	{
-		if (this->data(Qt::UserRole).toBool()) {
-			return false;
-		}
-		return text() < other.text();
-	}
+    QCustomTableWidgetItem() = default;
+    explicit QCustomTableWidgetItem(const QString& text, int type = Type)
+        : QTableWidgetItem(text, type)
+    {
+    };
+
+    bool operator<(const QTableWidgetItem& other) const override
+    {
+        if (this->data(Qt::UserRole).toBool())
+        {
+            return false;
+        }
+        return text() < other.text();
+    }
 };
 
-class QCustomTreeWidgetItem: public QTreeWidgetItem
+class QCustomTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-	QCustomTreeWidgetItem() = default;
-	explicit QCustomTreeWidgetItem(QTreeWidget *widget)
-		: QTreeWidgetItem(widget)
-	{};
+    QCustomTreeWidgetItem() = default;
+    explicit QCustomTreeWidgetItem(QTreeWidget* widget)
+        : QTreeWidgetItem(widget)
+    {
+    };
 
-	bool operator<(const QTreeWidgetItem &other) const override
-	{
-		return text(2).toInt() < other.text(2).toInt();
-	}
+    bool operator<(const QTreeWidgetItem& other) const override
+    {
+        return text(2).toInt() < other.text(2).toInt();
+    }
 };
 
-class MainWnd: public QMainWindow
+class MainWnd : public QMainWindow
 {
 Q_OBJECT
 
 public:
-	explicit MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mMyDelegate);
+    explicit MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mMyDelegate);
 
-	~MainWnd() override;
+    ~MainWnd() override
+    {
+    };
 
 private:
-	Ui::MainWnd *ui;
+    Ui::MainWnd* ui;
 
-	QStringList m_TableHeader;
-	QMenu m_contextMenu;
-	QCustomTableWidgetItem m_lastItem;
-	QCustomTableWidgetItem m_AddUserItem;
+    QStringList m_TableHeader;
+    QMenu m_contextMenu;
+    QCustomTableWidgetItem m_lastItem;
+    QCustomTableWidgetItem m_AddUserItem;
 
-	AddUserDialog m_addUserDlg;
-	unique_ptr<UsersDB> m_userDB = make_unique<UsersDB>(new UsersDB);
-	QMap<QString, QSharedPointer<Player>> m_players;
-	MatchMaker m_maker;
+    AddUserDialog m_addUserDlg;
+    unique_ptr<UsersDB> m_userDB = make_unique<UsersDB>(new UsersDB);
+    QMap<QString, QSharedPointer<Player>> m_players;
+    MatchMaker m_maker;
 
-	PlayersModel *m_model;
-	PlayersModelDelegate *m_myDelegate;
+    PlayersModel* m_model;
+    PlayersModelDelegate* m_myDelegate;
 
 private slots:
-	void on_actionSave_the_Dashboard_to_File_triggered();
-	void on_actionShow_Hide_Dashboard_triggered();
-	void on_actionShow_Hide_User_List_triggered();
-	//void on_tableWidget_cellClicked(int, int);
-	[[maybe_unused]] void on_filterPushButton_clicked();
+    void on_actionSave_the_Dashboard_to_File_triggered();
+    void on_actionShow_Hide_Dashboard_triggered();
+    void on_actionShow_Hide_User_List_triggered();
+    //void on_tableWidget_cellClicked(int, int);
+    [[maybe_unused]] void on_filterPushButton_clicked();
 
-	void on_action_Add_user_triggered();
-	void on_action_Remove_user_triggered();
-	void slotCustomMenuRequested(const QPoint &);
-	void sortIndicatorChangedSlot(int col, Qt::SortOrder);
-	void ShowError();
-	void UpdateVheaderSize();
+    void on_action_Add_user_triggered();
+    void on_action_Remove_user_triggered();
+    void slotCustomMenuRequested(const QPoint&);
+    void sortIndicatorChangedSlot(int col, Qt::SortOrder);
+    void ShowError();
 
-    void on_tableView_clicked(const QModelIndex &index);
+    void on_tableView_clicked(const QModelIndex& index);
 
 
 signals:
-	void aboutToClose();
+    void aboutToClose();
 
 
 private:
-	QTimer *m_timerShowError;
-	QTimer *m_updateVHeaderSize;
+    QTimer* m_timerShowError;
 
 private:
-	void InitializeUIComponents();
-	void InitializeUsersTable();
-	void ConnectSignalsToSlots();
-	void PopulateUsersTables();
-	void PopulateUsers();
-	void AddUser();
-	void addTreeRoot(const QString &, const QString &);
-	static void addTreeChild(QTreeWidgetItem *, const QString &, const QString &);
-	void RemoveFromPlayers(const QString &);
-	void SaveTreeToJson(const QString &);
-	bool ProcessItemToJson(QTreeWidgetItem *, QJsonObject &);
-	QJsonObject toJsonRecursive(QTreeWidgetItem *, bool child = false);
-	QJsonArray toJsonArray(QTreeWidget *treeWidget);
-	int GetLastItemSection();
+    void InitializeUIComponents();
+    void InitializeUsersTable();
+    void ConnectSignalsToSlots();
+    void PopulateUsersTables();
+    void PopulateUsers();
+    void AddUser();
+    void addTreeRoot(const QString&, const QString&);
+    static void addTreeChild(QTreeWidgetItem*, const QString&, const QString&);
+    void RemoveFromPlayers(const QString&);
+    void SaveTreeToJson(const QString&);
+    bool ProcessItemToJson(QTreeWidgetItem*, QJsonObject&);
+    QJsonObject toJsonRecursive(QTreeWidgetItem*, bool child = false);
+    QJsonArray toJsonArray(QTreeWidget* treeWidget);
+    int GetLastItemSection();
 };
 
 

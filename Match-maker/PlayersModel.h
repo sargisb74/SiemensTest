@@ -33,51 +33,56 @@ class PlayersModel : public QStandardItemModel
 Q_OBJECT
 
 public:
-	[[maybe_unused]] explicit PlayersModel(QObject *parent, PlayersSortFilterProxyModel*);
-	PlayersModel(int rows, int columns, QObject *parent, PlayersSortFilterProxyModel*);
+    [[maybe_unused]] explicit PlayersModel(QObject* parent, PlayersSortFilterProxyModel*);
+    PlayersModel(int rows, int columns, QObject* parent, PlayersSortFilterProxyModel*);
 
-	void populateData(const QVector<QSharedPointer<Player>> &);
-	void appendData(const QSharedPointer<Player>& , int );
-	void removeData(const QString& );
-	void updateVerticalHeader( );
-	QString GetLastItemText() {
-		return m_players.at(m_players.size() - 1)->GetUseName();
-	}
-	void SetLastItemSection (int section) {
-		m_lastItemRowToSection = section;
-	}
-	int GetLastItemRowToSection () {
-		return m_lastItemRowToSection;
-	}
+    void populateData(const QVector<QSharedPointer<Player>>&);
+    void appendData(const QSharedPointer<Player>&, int);
+    void removeData(const QString&);
+    void updateVerticalHeader();
+    QString GetLastItemText()
+    {
+        return m_players.at(m_players.size() - 1)->GetUseName();
+    }
+    void SetLastItemSection(int section)
+    {
+        m_lastItemRowToSection = section;
+    }
+    int GetLastItemRowToSection()
+    {
+        return m_lastItemRowToSection;
+    }
 
-	int GetPlayersCount() {
-		return m_players.size();
-	}
+    int GetPlayersCount()
+    {
+        return m_players.size();
+    }
 
-	int GetVerticalHeaderSize() {
-		return m_verticalHeaderSize;
-	}
+    int GetVerticalHeaderSize()
+    {
+        return m_verticalHeaderSize;
+    }
 
-	void SetVerticalHeaderSize(int newSize) {
-		m_verticalHeaderSize = newSize;
-	}
+    void SetVerticalHeaderSize(int newSize)
+    {
+        m_verticalHeaderSize = newSize;
+    }
 
 public slots:
-	void requestVHeaderUpdate();
+    void requestVHeaderUpdate();
 
+    int rowCount(const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-	int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-	int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-
-	[[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-	[[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const Q_DECL_OVERRIDE;
+    [[nodiscard]] QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const Q_DECL_OVERRIDE;
 
 private:
 
-	PlayersSortFilterProxyModel* m_proxyModel;
-	QVector<QSharedPointer<Player>> m_players;
-	mutable int m_verticalHeaderCounter;
-	mutable int m_verticalHeaderSize;
-	QTimer *m_timer = nullptr;
-	int m_lastItemRowToSection;
+    PlayersSortFilterProxyModel* m_proxyModel;
+    QVector<QSharedPointer<Player>> m_players;
+    mutable int m_verticalHeaderCounter;
+    mutable int m_verticalHeaderSize;
+    QTimer* m_timer = nullptr;
+    int m_lastItemRowToSection;
 };

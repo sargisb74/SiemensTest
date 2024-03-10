@@ -20,53 +20,54 @@ using namespace std;
 
 enum class GameResult
 {
-	NO_WINNER, FIRST, SECOND
+    NO_WINNER, FIRST, SECOND
 };
 
-class MatchMaker: public QObject
+class MatchMaker : public QObject
 {
 Q_OBJECT
 
 public:
-	~MatchMaker() override
-	{
-		m_timer->stop();
-	};
+    ~MatchMaker() override
+    {
+        m_timer->stop();
+    };
 
-	void SetPlayers(QMap<QString, QSharedPointer<Player>> *players)
-	{
-		m_players = players;
-	}
+    void SetPlayers(QMap<QString, QSharedPointer<Player>>* players)
+    {
+        m_players = players;
+    }
 
-	void SetUserDb(UsersDB &userDB)
-	{
-		m_userDB = &userDB;
-	}
+    void SetUserDb(UsersDB& userDB)
+    {
+        m_userDB = &userDB;
+    }
 
-	void SetTreeWidget(QTreeWidget *treeWidget)
-	{
-		m_treeWidget = treeWidget;
-	}
+    void SetTreeWidget(QTreeWidget* treeWidget)
+    {
+        m_treeWidget = treeWidget;
+    }
 
-	void Start();
+    void Start();
 
-	void Initialise(QMap<QString, QSharedPointer<Player>> *players, UsersDB &userDB, QTreeWidget *treeWidget);
+    void Initialise(QMap<QString, QSharedPointer<Player>>* players, UsersDB& userDB, QTreeWidget* treeWidget);
 
-	void InitUsers(QMap<QString, QSharedPointer<Player>> *);
+    void InitUsers(QMap<QString, QSharedPointer<Player>>*);
 
 private:
 
-	QTimer *m_timer = nullptr;
-	UsersDB *m_userDB{};
-	QTreeWidget *m_treeWidget{};
-	QVector<QString> m_users;
-	QMap<QString, QSharedPointer<Player>> *m_players{};
+    QTimer* m_timer = nullptr;
+    UsersDB* m_userDB{};
+    QTreeWidget* m_treeWidget{};
+    QVector<QString> m_users;
+    QMap<QString, QSharedPointer<Player>>* m_players{};
 
-	void performBackgroundTask();
-	void UpdateWinner(Player &);
-	static GameResult ExecuteGame(const QString &);
+    void performBackgroundTask();
+    void UpdateWinner(Player*);
+    void ExecuteGame(Player*, Player*);
+
 public slots:
-	void RunMatches();
+    void RunMatches();
 };
 
 

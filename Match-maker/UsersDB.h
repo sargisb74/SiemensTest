@@ -27,33 +27,33 @@
 #define GAME            "Game"
 #define RATING          "Rating"
 
-class UsersDB: public QObject
+class UsersDB : public QObject
 {
 Q_OBJECT
 public:
-	explicit UsersDB(QObject *parent = nullptr);
-	~UsersDB() override;
+    explicit UsersDB(QObject* parent = nullptr);
+    ~UsersDB() override;
 
-	void connectToDataBase();
-	static bool insertIntoUserTable(const QVariantList &, QString &);
-	static bool insertIntoUser_RatingsTable(const QVariantList &);
-	static bool removeFromUserTable(const QString &);
-	static bool removeFromUser_RatingsTable(const QString &);
-	static bool UpdateRating(const QString &, const QString &, int);
-	QStringList GetUserByRatingOfOpponent(const QString &, const QString &, int);
-	static QMap<QString, int> GetGameToRatingMap(const QString &, const QString &);
-	static QSqlQuery GetUserRating(const QString &);
-
-private:
-	QSqlDatabase dbUsers;
+    void connectToDataBase();
+    static bool insertIntoUserTable(const QVariantList&, QString&);
+    static bool insertIntoUser_RatingsTable(const QVariantList&);
+    static bool removeFromUserTable(const QString&);
+    static bool removeFromUser_RatingsTable(const QString&);
+    static bool UpdateRating(const QString&, const QString&, int);
+    QStringList GetUserByRatingOfOpponent(const QString&, const QString&, int);
+    static QMap<QString, int> GetGameToRatingMap(const QString&, const QString&);
+    static QSqlQuery GetUserRating(const QString&);
 
 private:
-	bool openDataBase();
-	bool restoreDataBase();
-	void closeDataBase();
-	static bool createUserTable();
-	static bool createUserRatingsTable();
-	static bool UserExists(const QString &);
+    QSqlDatabase dbUsers;
+
+private:
+    bool openDataBase();
+    bool restoreDataBase();
+    void closeDataBase();
+    static bool createUserTable();
+    static bool createUserRatingsTable();
+    static bool UserExists(const QString&);
 };
 
 

@@ -12,15 +12,15 @@ class PlayersSortFilterProxyModel Q_DECL_FINAL : public QSortFilterProxyModel
 {
 Q_OBJECT
 public:
-	explicit PlayersSortFilterProxyModel(QObject* parent)
-		: QSortFilterProxyModel(parent)
-	{
-	}
+    explicit PlayersSortFilterProxyModel(QObject* parent)
+        : QSortFilterProxyModel(parent)
+    {
+    }
 
 protected:
-	bool lessThan(const QModelIndex& left, const QModelIndex& right) const Q_DECL_OVERRIDE;
+    bool lessThan(const QModelIndex& left, const QModelIndex& right) const Q_DECL_OVERRIDE;
 
-	bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 };
 
 
