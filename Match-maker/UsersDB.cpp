@@ -339,28 +339,3 @@ QMap<QString, int> UsersDB::GetGameToRatingMap(const QString& user, const QStrin
 
     return gameToRating;
 }
-
-QSqlQuery UsersDB::GetUserRating(const QString& game)
-{
-    QSqlQuery query;
-    if (!query.prepare("SELECT "
-                       USER_NAME ", "
-                       RATING
-                       " FROM " USER_RATINGS
-                       " WHERE " GAME " = :Game ORDER BY " RATING " DESC"))
-    {
-        qDebug() << "Error preparing query:" << query.lastError().text();
-        return query;
-    }
-
-    query.bindValue(":Game", game);
-
-    if (!query.exec())
-    {
-        qDebug() << "error deleting from " << USER;
-        qDebug() << query.lastError().text();
-        return query;
-    }
-
-    return query;
-}

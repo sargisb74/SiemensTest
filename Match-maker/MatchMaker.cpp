@@ -65,7 +65,9 @@ void MatchMaker::UpdateWinner(Player* winner)
 
     if (UsersDB::UpdateRating(user, game, rating))
     {
-        QList<QTreeWidgetItem*> items = m_treeWidget->findItems(game, Qt::MatchRegularExpression);
+        m_players->value(user)->SetRating(game, rating);
+        m_treeModel->UpdateGameRating(game, user, rating);
+        /*QList<QTreeWidgetItem*> items = m_treeWidget->findItems(game, Qt::MatchRegularExpression);
         for (QTreeWidgetItem* parentItem: items)
         {
             for (int i = 0; i < parentItem->childCount(); ++i)
@@ -84,7 +86,7 @@ void MatchMaker::UpdateWinner(Player* winner)
                     break;
                 }
             }
-        }
+        }*/
     }
 }
 
@@ -150,11 +152,11 @@ void MatchMaker::Start()
     m_timer->start(100);
 }
 
-void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>>* players, UsersDB& userDB, QTreeWidget* treeWidget)
+void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>>* players, UsersDB& userDB, DashboardTreeModel* treeModel)
 {
     m_players = players;
     m_userDB = &userDB;
-    m_treeWidget = treeWidget;
+    m_treeModel = treeModel;
 
     std::transform(
         m_players->begin(),

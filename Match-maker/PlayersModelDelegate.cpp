@@ -22,8 +22,8 @@ void PlayersModelDelegate::setEditorData(QWidget* editor, const QModelIndex& ind
 
 }
 
-// When we modify data, this m_model reflect the change
-// Data from the delegate to the m_model
+// When we modify data, this m_tableModel reflect the change
+// Data from the delegate to the m_tableModel
 void PlayersModelDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
     model->setData(index, model->data(index).view<QVariant>(), Qt::EditRole);

@@ -20,7 +20,7 @@ public:
     // Then, we set the Editor
     void setEditorData(QWidget* editor, const QModelIndex& index) const;
 
-    // When we modify data, this m_model reflect the change
+    // When we modify data, this m_tableModel reflect the change
     void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 
     // Give the SpinBox the info on size and location

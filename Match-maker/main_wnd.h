@@ -16,6 +16,7 @@
 #include "add_user_dialog.h"
 #include "UsersDB.h"
 #include "Player.h"
+#include "DashboardTreeModel.h"
 #include "MatchMaker.h"
 #include "PlayersModel.h"
 #include "PlayersModelDelegate.h"
@@ -88,14 +89,14 @@ private:
     QMap<QString, QSharedPointer<Player>> m_players;
     MatchMaker m_maker;
 
-    PlayersModel* m_model;
+    PlayersModel* m_tableModel;
+    DashboardTreeModel *m_treeModel;
     PlayersModelDelegate* m_myDelegate;
 
 private slots:
     void on_actionSave_the_Dashboard_to_File_triggered();
     void on_actionShow_Hide_Dashboard_triggered();
     void on_actionShow_Hide_User_List_triggered();
-    //void on_tableWidget_cellClicked(int, int);
     [[maybe_unused]] void on_filterPushButton_clicked();
 
     void on_action_Add_user_triggered();
@@ -116,18 +117,12 @@ private:
 
 private:
     void InitializeUIComponents();
-    void InitializeUsersTable();
+    void InitializeViews();
     void ConnectSignalsToSlots();
     void PopulateUsersTables();
     void PopulateUsers();
     void AddUser();
-    void addTreeRoot(const QString&, const QString&);
-    static void addTreeChild(QTreeWidgetItem*, const QString&, const QString&);
     void RemoveFromPlayers(const QString&);
-    void SaveTreeToJson(const QString&);
-    bool ProcessItemToJson(QTreeWidgetItem*, QJsonObject&);
-    QJsonObject toJsonRecursive(QTreeWidgetItem*, bool child = false);
-    QJsonArray toJsonArray(QTreeWidget* treeWidget);
     int GetLastItemSection();
 };
 

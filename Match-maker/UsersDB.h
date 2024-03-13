@@ -42,7 +42,6 @@ public:
     static bool UpdateRating(const QString&, const QString&, int);
     QStringList GetUserByRatingOfOpponent(const QString&, const QString&, int);
     static QMap<QString, int> GetGameToRatingMap(const QString&, const QString&);
-    static QSqlQuery GetUserRating(const QString&);
 
 private:
     QSqlDatabase dbUsers;

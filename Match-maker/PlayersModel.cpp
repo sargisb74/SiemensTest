@@ -42,7 +42,7 @@ PlayersModel::PlayersModel(int rows, int columns, QObject* parent, PlayersSortFi
     m_timer->start(20);
 };
 
-// Create a method to populate the m_model with data:
+// Create a method to populate the m_tableModel with data:
 void PlayersModel::populateData(const QVector<QSharedPointer<Player>>& players)
 {
     m_players.clear();

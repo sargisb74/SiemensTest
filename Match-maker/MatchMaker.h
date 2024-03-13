@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <QMutex>
 #include "Player.h"
+#include "DashboardTreeModel.h"
 #include "UsersDB.h"
 
 using namespace std;
@@ -43,14 +44,14 @@ public:
         m_userDB = &userDB;
     }
 
-    void SetTreeWidget(QTreeWidget* treeWidget)
+    /*void SetTreeModel(DashboardTreeModel* treeModel)
     {
-        m_treeWidget = treeWidget;
-    }
+        m_treeModel = treeModel;
+    }*/
 
     void Start();
 
-    void Initialise(QMap<QString, QSharedPointer<Player>>* players, UsersDB& userDB, QTreeWidget* treeWidget);
+    void Initialise(QMap<QString, QSharedPointer<Player>>* , UsersDB& , DashboardTreeModel* );
 
     void InitUsers(QMap<QString, QSharedPointer<Player>>*);
 
@@ -58,7 +59,7 @@ private:
 
     QTimer* m_timer = nullptr;
     UsersDB* m_userDB{};
-    QTreeWidget* m_treeWidget{};
+    DashboardTreeModel* m_treeModel{};
     QVector<QString> m_users;
     QMap<QString, QSharedPointer<Player>>* m_players{};
 

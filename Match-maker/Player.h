@@ -56,6 +56,11 @@ public:
         return m_ratingByGame[game];
     }
 
+    const QMap<QString, int>& GetRatingByGame()
+    {
+        return m_ratingByGame;
+    }
+
     void SetRating(const QString& game, int rating)
     {
         m_ratingByGame[game] = rating;
