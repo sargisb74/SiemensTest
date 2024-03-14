@@ -13,33 +13,26 @@ UsersDB::UsersDB(QObject* parent)
 
 UsersDB::~UsersDB()
 {
-    closeDataBase();
+    CloseDataBase();
 }
 
-void UsersDB::connectToDataBase()
+void UsersDB::ConnectToDataBase()
 {
     if (!QFile(QDir::homePath() + QDir::separator() + DATABASE_NAME).exists())
     {
-        this->restoreDataBase();
+        this->RestoreDataBase();
     }
     else
     {
-        this->openDataBase();
+        this->OpenDataBase();
     }
 }
 
-bool UsersDB::restoreDataBase()
+bool UsersDB::RestoreDataBase()
 {
-    if (this->openDataBase())
+    if (this->OpenDataBase())
     {
-        if (!this->createUserTable() || !createUserRatingsTable())
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return !(!UsersDB::CreateUserTable() || !CreateUserRatingsTable());
     }
     else
     {
@@ -48,12 +41,12 @@ bool UsersDB::restoreDataBase()
     }
 }
 
-bool UsersDB::openDataBase()
+bool UsersDB::OpenDataBase()
 {
-    dbUsers = QSqlDatabase::addDatabase("QSQLITE");
-    dbUsers.setHostName(DATABASE_HOSTNAME);
-    dbUsers.setDatabaseName(QDir::homePath() + QDir::separator() + DATABASE_NAME);
-    if (dbUsers.open())
+    m_dbUsers = QSqlDatabase::addDatabase("QSQLITE");
+    m_dbUsers.setHostName(DATABASE_HOSTNAME);
+    m_dbUsers.setDatabaseName(QDir::homePath() + QDir::separator() + DATABASE_NAME);
+    if (m_dbUsers.open())
     {
         return true;
     }
@@ -63,12 +56,12 @@ bool UsersDB::openDataBase()
     }
 }
 
-void UsersDB::closeDataBase()
+void UsersDB::CloseDataBase()
 {
-    dbUsers.close();
+    m_dbUsers.close();
 }
 
-bool UsersDB::createUserTable()
+bool UsersDB::CreateUserTable()
 {
     QSqlQuery query;
     if (!query.exec("CREATE TABLE " USER " ("
@@ -80,7 +73,7 @@ bool UsersDB::createUserTable()
                     " )"
     ))
     {
-        qDebug() << "DataBase: error of create " << USER;
+        qDebug() << "Error creating " << USER << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -90,7 +83,7 @@ bool UsersDB::createUserTable()
     }
 }
 
-bool UsersDB::createUserRatingsTable()
+bool UsersDB::CreateUserRatingsTable()
 {
     QSqlQuery query;
     if (!query.exec("CREATE TABLE " USER_RATINGS " ("
@@ -100,7 +93,7 @@ bool UsersDB::createUserRatingsTable()
                     " )"
     ))
     {
-        qDebug() << "DataBase: error of create " << USER_RATINGS;
+        qDebug() << "Error creating " << USER_RATINGS << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -110,7 +103,7 @@ bool UsersDB::createUserRatingsTable()
     }
 }
 
-bool UsersDB::insertIntoUserTable(const QVariantList& data, QString& error)
+bool UsersDB::InsertIntoUserTable(const QVariantList& data, QString& error)
 {
     QSqlQuery query;
     query.clear();
@@ -134,7 +127,7 @@ bool UsersDB::insertIntoUserTable(const QVariantList& data, QString& error)
 
     if (!query.exec())
     {
-        error = "Error in creating user query for " + QString(USER) + ": " + query.lastError().text();
+        error = "Error inserting " + data[0].toString() + " into " + USER + ":\n" + query.lastError().text();
         qDebug() << error;
 
         return false;
@@ -145,37 +138,7 @@ bool UsersDB::insertIntoUserTable(const QVariantList& data, QString& error)
     }
 }
 
-bool UsersDB::UserExists(const QString& userName)
-{
-    QSqlQuery query;
-    if (!query.prepare("SELECT " USER_NAME " FROM " USER
-                       " WHERE " USER_NAME " = :UserName"))
-    {
-        qDebug() << "Error preparing query:" << query.lastError().text();
-        return false;
-    }
-
-    query.bindValue(":UserName", userName);
-
-    if (!query.exec())
-    {
-        qDebug() << "error getting user from " << USER;
-        qDebug() << query.lastError().text();
-        return false;
-    }
-
-    for (int index = 0; query.next(); index++)
-    {
-        if (query.value(0).toString() == userName)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool UsersDB::insertIntoUser_RatingsTable(const QVariantList& data)
+bool UsersDB::InsertIntoUser_RatingsTable(const QVariantList& data)
 {
     QSqlQuery query;
     if (!query.prepare("INSERT INTO " USER_RATINGS " ( " USER_NAME ", "
@@ -191,7 +154,7 @@ bool UsersDB::insertIntoUser_RatingsTable(const QVariantList& data)
 
     if (!query.exec())
     {
-        qDebug() << "error insert into " << USER_RATINGS;
+        qDebug() << "Error inserting " << data[0].toString() << " into " << USER_RATINGS << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -201,7 +164,7 @@ bool UsersDB::insertIntoUser_RatingsTable(const QVariantList& data)
     }
 }
 
-bool UsersDB::removeFromUserTable(const QString& userName)
+bool UsersDB::RemoveFromUserTable(const QString& userName)
 {
     QSqlQuery query;
     if (!query.prepare("DELETE FROM " USER " WHERE " USER_NAME " = (:UserName)"))
@@ -214,7 +177,7 @@ bool UsersDB::removeFromUserTable(const QString& userName)
 
     if (!query.exec())
     {
-        qDebug() << "error deleting from " << USER;
+        qDebug() << "Error removing " << userName << " from " << USER << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -224,7 +187,7 @@ bool UsersDB::removeFromUserTable(const QString& userName)
     }
 }
 
-bool UsersDB::removeFromUser_RatingsTable(const QString& userName)
+bool UsersDB::RemoveFromUser_RatingsTable(const QString& userName)
 {
     QSqlQuery query;
     if (!query.prepare("DELETE FROM " USER_RATINGS " WHERE " USER_NAME " = (:UserName)"))
@@ -237,7 +200,7 @@ bool UsersDB::removeFromUser_RatingsTable(const QString& userName)
 
     if (!query.exec())
     {
-        qDebug() << "error deleting from " << USER_RATINGS;
+        qDebug() << "Error removing " << userName << " from " << USER_RATINGS << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -263,7 +226,7 @@ bool UsersDB::UpdateRating(const QString& user, const QString& game, int rating)
 
     if (!query.exec())
     {
-        qDebug() << "error deleting from " << USER_RATINGS;
+        qDebug() << "Error updating rating for " << game << " of " << user << ":";
         qDebug() << query.lastError().text();
         return false;
     }
@@ -278,7 +241,9 @@ QStringList UsersDB::GetUserByRatingOfOpponent(const QString& user, const QStrin
     QStringList list;
     QSqlQuery query;
 
-    if (!query.prepare("SELECT " USER_NAME
+    if (!query.prepare("SELECT " USER_NAME ", "
+                       GAME ", "
+                       RATING
                        " FROM " USER_RATINGS " WHERE " USER_NAME " != (:UserName) AND "
                        GAME " == (:Game) AND " RATING " BETWEEN (:Rating1) AND (:Rating2)"))
     {
@@ -291,11 +256,9 @@ QStringList UsersDB::GetUserByRatingOfOpponent(const QString& user, const QStrin
     query.bindValue(":Rating1", rating - 1);
     query.bindValue(":Rating2", rating + 3);
 
-    //qDebug() << "+++     rating    ++++" << rating;
-
     if (!query.exec())
     {
-        qDebug() << "error deleting from " << USER;
+        qDebug() << "Error getting user by rating of opponent for " << game << " of " << user << ":";
         qDebug() << query.lastError().text();
         return {};
     }
@@ -313,7 +276,7 @@ QMap<QString, int> UsersDB::GetGameToRatingMap(const QString& user, const QStrin
     QMap<QString, int> gameToRating;
     QList list = games.split(", ");
 
-    for (const QString& game: list)
+    for (const QString& game : list)
     {
         QSqlQuery query;
         if (!query.prepare("SELECT " GAME ", " RATING
@@ -327,7 +290,7 @@ QMap<QString, int> UsersDB::GetGameToRatingMap(const QString& user, const QStrin
 
         if (!query.exec())
         {
-            qDebug() << "error deleting from " << USER;
+            qDebug() << "Error getting game to rating of " << user << ":";
             qDebug() << query.lastError().text();
             return {};
         }
@@ -338,4 +301,31 @@ QMap<QString, int> UsersDB::GetGameToRatingMap(const QString& user, const QStrin
     }
 
     return gameToRating;
+}
+
+QSqlQuery UsersDB::GetUserRating(const QString& user, const QString& game)
+{
+    QSqlQuery query;
+    if (!query.prepare("SELECT "
+                       USER_NAME ", "
+                       RATING
+                       " FROM " USER_RATINGS " WHERE "
+                       GAME " = (:Game) AND "
+                       USER_NAME " = (:User)"))
+    {
+        qDebug() << "Error preparing query:" << query.lastError().text();
+        return query;
+    }
+
+    query.bindValue(":Game", game);
+    query.bindValue(":User", user);
+
+    if (!query.exec())
+    {
+        qDebug() << "Error getting " << game << " rating of " << user << ":";
+        qDebug() << query.lastError().text();
+        return query;
+    }
+
+    return query;
 }

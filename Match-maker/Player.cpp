@@ -4,15 +4,17 @@
 
 #include <iostream>
 #include <QRandomGenerator>
+#include <utility>
 #include "Player.h"
 
-Player::Player(QString user, QString firstName, QString lastName, const QMap<QString, int>&& gameToRating)
+Player::Player(QString user, QString firstName, QString lastName,
+    const QMap<QString, int>&& gameToRating)
     : m_userName(std::move(user)), m_firstName(std::move(firstName)),
       m_lastName(std::move(lastName)), m_ratingByGame(gameToRating)
 {
     m_timerRequest = new QTimer(this);
     connect(m_timerRequest, SIGNAL(timeout()), this, SLOT(requestMatch()));
-    m_timerRequest->start(2000);
+    m_timerRequest->start(USER_FREE_TIME);
 }
 
 Player::~Player()
@@ -27,7 +29,7 @@ Player::~Player()
 QString Player::GetPreferredGames()
 {
     QStringList keys = m_ratingByGame.keys();
-    return keys.join(',');
+    return keys.join(", ");
 }
 
 void Player::requestMatch()
@@ -44,7 +46,7 @@ void Player::requestMatch()
         m_currentGame = keys.at(game);
         m_state = State::WAITING;
         m_timerRequest->stop();
-        m_timerRequest->start(2000);
+        m_timerRequest->start(USER_FREE_TIME);
         return;
     }
 
@@ -52,7 +54,7 @@ void Player::requestMatch()
     {
         m_state = State::FREE;
         m_timerRequest->stop();
-        int timeout = QRandomGenerator::global()->bounded(2000, 3001);
+        int timeout = QRandomGenerator::global()->bounded(USER_FREE_TIME, USER_WAIT_TIMEOUT + 1);
         m_timerRequest->start(timeout);
     }
 }

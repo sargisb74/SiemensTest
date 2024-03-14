@@ -7,7 +7,6 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "DashboardTreeModel.h"
-#include "Player.h"
 #include "CustomTreeItems.h"
 
 DashboardTreeModel::DashboardTreeModel(QObject* parent)
@@ -64,7 +63,7 @@ void DashboardTreeModel::AppendRow(const QString& game, const QString& userName,
 
     parentItem = m_gameToItem[game];
     parentItem->SetUserAndRatingItems(userName, usernameItem, ratingItem);
-    parentItem->appendRow({{}, usernameItem,  ratingItem});
+    parentItem->appendRow({{}, usernameItem, ratingItem });
 }
 
 void DashboardTreeModel::RemoveUser(const QString& user)
@@ -94,7 +93,7 @@ void DashboardTreeModel::RemoveUser(const QString& user)
 void DashboardTreeModel::UpdateGameRating(const QString& game, const QString& user, unsigned int rating)
 {
     GameTreeItem* gameItem = m_gameToItem[game];
-    if(gameItem)
+    if (gameItem)
     {
         auto* ratingItem = gameItem->GetRatingItem(user);
         if (ratingItem)
@@ -151,7 +150,7 @@ QJsonArray DashboardTreeModel::toJsonArray()
     return jsonArray;
 }
 
-template <class T>
+template<class T>
 QJsonObject DashboardTreeModel::toJsonRecursive(T* gameOrUserItem, RatingTreeItem* ratingItem)
 {
     QJsonObject obj;

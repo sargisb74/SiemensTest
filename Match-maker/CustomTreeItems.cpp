@@ -2,13 +2,13 @@
 #include "CustomTreeItems.h"
 #include "DashboardTreeModel.h"
 
-RatingTreeItem::RatingTreeItem(const QString &str)
+RatingTreeItem::RatingTreeItem(const QString& str)
     : QStandardItem(str)
 {
 
 }
 
-bool RatingTreeItem::operator<(const QStandardItem &other) const
+bool RatingTreeItem::operator<(const QStandardItem& other) const
 {
     try
     {
@@ -17,7 +17,7 @@ bool RatingTreeItem::operator<(const QStandardItem &other) const
             return data(Qt::DisplayRole).toInt() < other.data(Qt::DisplayRole).toInt();
         }
     }
-    catch(const QException &exception)
+    catch (const QException& exception)
     {
         qDebug() << "Exception occurred during sorting process: " << exception.what();
     }

@@ -7,21 +7,22 @@
 
 #include <QStandardItem>
 
-class RatingTreeItem: public QStandardItem
+class RatingTreeItem : public QStandardItem
 {
  public:
     RatingTreeItem() = default;
-    explicit RatingTreeItem(const QString &str);
+    explicit RatingTreeItem(const QString&);
 
-    bool operator<(const QStandardItem &other) const override;
+    bool operator<(const QStandardItem&) const override;
 };
 
-
-class GameTreeItem: public QStandardItem
+class GameTreeItem : public QStandardItem
 {
  public:
     GameTreeItem() = default;
-    explicit GameTreeItem(const QString &str): QStandardItem(str){};
+    explicit GameTreeItem(const QString& str) : QStandardItem(str)
+    {
+    };
 
     void SetUserAndRatingItems(const QString& userName, QStandardItem* userItem, RatingTreeItem* ratingItem)
     {
@@ -31,13 +32,13 @@ class GameTreeItem: public QStandardItem
     QStandardItem* GetUserItem(const QString& userName)
     {
         return m_userNameToItems.find(userName) == m_userNameToItems.end() ?
-        nullptr : m_userNameToItems[userName].first;
+               nullptr : m_userNameToItems[userName].first;
     }
 
     QStandardItem* GetRatingItem(const QString& userName)
     {
         return m_userNameToItems.find(userName) == m_userNameToItems.end()
-        ? nullptr : m_userNameToItems[userName].second;
+               ? nullptr : m_userNameToItems[userName].second;
     }
 
     const QMap<QString, QPair<QStandardItem*, RatingTreeItem*>>& GetGameChildItems()

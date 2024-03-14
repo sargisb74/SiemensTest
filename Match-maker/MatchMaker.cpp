@@ -2,12 +2,9 @@
 // Created by Sargis Boyajyan on 02.03.24.
 //
 
-#include <iostream>
 #include <QRandomGenerator>
-#include <QTreeWidgetItem>
 #include <QProcess>
 #include <QDir>
-#include <QThread>
 #include "MatchMaker.h"
 
 void MatchMaker::RunMatches()
@@ -26,12 +23,11 @@ void MatchMaker::performBackgroundTask()
             Player* firstPlayer = ((*m_players)[m_users[index]]).get();
             if (firstPlayer != nullptr && (firstPlayer->GetState() == State::WAITING))
             {
-                QStringList list = m_userDB->GetUserByRatingOfOpponent(firstPlayer->GetUseName(),
-                    firstPlayer->GetCurrentGame(),
-                    firstPlayer
-                        ->GetRating(firstPlayer->GetCurrentGame()));
+                QString currentGame = firstPlayer->GetCurrentGame();
+                QStringList list = UsersDB::GetUserByRatingOfOpponent(firstPlayer->GetUseName(), currentGame,
+                    firstPlayer->GetRating(currentGame));
 
-                for (const QString& user: list)
+                for (const QString& user : list)
                 {
                     Player* secondPlayer = ((*m_players)[user]).get();
                     if (secondPlayer != nullptr && (secondPlayer->GetState() == State::WAITING))
@@ -40,9 +36,9 @@ void MatchMaker::performBackgroundTask()
                         firstPlayer->SetState(State::BUSY);
                         std::cout << firstPlayer->GetUseName().toStdString() << " and " <<
                                   secondPlayer->GetUseName().toStdString()
-                                  << " are playing " << firstPlayer->GetCurrentGame().toStdString() <<
+                                  << " are playing " << currentGame.toStdString() <<
                                   std::endl << std::endl;
-                        ExecuteGame(firstPlayer, secondPlayer);
+                        ExecuteGame(firstPlayer, secondPlayer, currentGame);
                     }
                     else
                     {
@@ -53,13 +49,12 @@ void MatchMaker::performBackgroundTask()
     }
     catch (exception& ex)
     {
-        std::cout << m_users[0].toStdString() << "Exception occurred: " << ex.what() << std::endl;
+        std::cout << "Exception occurred: " << ex.what() << std::endl;
     }
 }
 
-void MatchMaker::UpdateWinner(Player* winner)
+void MatchMaker::UpdateWinner(Player* winner, const QString& game)
 {
-    QString game = winner->GetCurrentGame();
     QString user = winner->GetUseName();
     int rating = winner->GetRating(game) + 1;
 
@@ -67,32 +62,12 @@ void MatchMaker::UpdateWinner(Player* winner)
     {
         m_players->value(user)->SetRating(game, rating);
         m_treeModel->UpdateGameRating(game, user, rating);
-        /*QList<QTreeWidgetItem*> items = m_treeWidget->findItems(game, Qt::MatchRegularExpression);
-        for (QTreeWidgetItem* parentItem: items)
-        {
-            for (int i = 0; i < parentItem->childCount(); ++i)
-            {
-                QTreeWidgetItem* childItem = parentItem->child(i);
-
-                if (childItem->text(1) == user)
-                {
-                    childItem->setText(2, QString::number(rating));
-                    parentItem->sortChildren(2, Qt::DescendingOrder);
-                    qDebug() << winner->GetUseName() << "wins " << winner->GetCurrentGame() << " game : old rating:  "
-                             << winner->GetRating(winner->GetCurrentGame());
-                    winner->SetRating(game, rating);
-                    qDebug() << "New rating: " << winner->GetRating(winner->GetCurrentGame());
-
-                    break;
-                }
-            }
-        }*/
     }
 }
 
-void MatchMaker::ExecuteGame(Player* firstPlayer, Player* secondPlayer)
+void MatchMaker::ExecuteGame(Player* firstPlayer, Player* secondPlayer, const QString& game)
 {
-    QProcess* process = new QProcess();
+    auto* process = new QProcess();
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QString separator = QDir::separator();
     QString fileName = "XOGame";
@@ -100,42 +75,41 @@ void MatchMaker::ExecuteGame(Player* firstPlayer, Player* secondPlayer)
         QDir::currentPath()) + separator + fileName;
 
     QObject::connect(process, &QProcess::finished,
-        [this, firstPlayer, secondPlayer, process](int exitCode, QProcess::ExitStatus exitStatus) mutable
+        [this, firstPlayer, secondPlayer, game, process](int exitCode, QProcess::ExitStatus exitStatus) mutable
         {
-            // Process the result here
-            if (exitStatus == QProcess::NormalExit)
-            {
-                QTextStream outStream(process->readAllStandardOutput());
-                QString stdOutput = outStream.readAll();
+          // Process the result here
+          if (exitStatus == QProcess::NormalExit)
+          {
+              QTextStream outStream(process->readAllStandardOutput());
+              QString stdOutput = outStream.readAll();
 
-                if (!stdOutput.isEmpty())
-                {
-                    qDebug() << "stdOutput.toInt() " << stdOutput.toInt();
-                    if (GameResult(stdOutput.toInt()) == GameResult::FIRST)
-                    {
-                        UpdateWinner(firstPlayer);
-                    }
-                    if (GameResult(stdOutput.toInt()) == GameResult::SECOND)
-                    {
-                        UpdateWinner(secondPlayer);
-                    }
+              if (!stdOutput.isEmpty())
+              {
+                  qDebug() << "stdOutput.toInt() " << stdOutput.toInt();
+                  if (GameResult(stdOutput.toInt()) == GameResult::FIRST)
+                  {
+                      UpdateWinner(firstPlayer, game);
+                  }
+                  if (GameResult(stdOutput.toInt()) == GameResult::SECOND)
+                  {
+                      UpdateWinner(secondPlayer, game);
+                  }
 
-                    firstPlayer->SetState(State::FREE);
-                    secondPlayer->SetState(State::FREE);
-                }
+                  firstPlayer->SetState(State::FREE);
+                  secondPlayer->SetState(State::FREE);
+              }
 
-                auto* process1 = qobject_cast<QProcess*>(sender());
-                if (process1)
-                {
-                    process1->deleteLater();
-                }
-            }
+              auto* process1 = qobject_cast<QProcess*>(sender());
+              if (process1)
+              {
+                  process1->deleteLater();
+              }
+          }
         });
 
     process->start(filePath, QStringList() << secondPlayer->GetCurrentGame());
 
     QTextStream outStream(process->readAllStandardOutput());
-    QString stdOutput = outStream.readAll();
     QTextStream errStream(process->readAllStandardError());
     QString stdError = errStream.readAll();
 
@@ -149,10 +123,12 @@ void MatchMaker::Start()
 {
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(RunMatches()));
-    m_timer->start(100);
+    m_timer->start(RUN_MATCHES_FREQUENCY);
 }
 
-void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>>* players, UsersDB& userDB, DashboardTreeModel* treeModel)
+void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>>* players,
+    UsersDB& userDB,
+    DashboardTreeModel* treeModel)
 {
     m_players = players;
     m_userDB = &userDB;
@@ -164,9 +140,8 @@ void MatchMaker::Initialise(QMap<QString, QSharedPointer<Player>>* players, User
         std::back_inserter(m_users),
         [](const QSharedPointer<Player>& player) -> QString
         {
-            QString userName = player.get() != NULL ? player->GetUseName() : "";
-            return (player.get() != NULL && !player->GetPreferredGames().isEmpty()) ? userName
-                                                                                    : QString();  // Ignore empty strings
+          QString userName = player.get() != nullptr ? player->GetUseName() : "";
+          return (player.get() != nullptr && !player->GetPreferredGames().isEmpty()) ? userName : QString();
         });
 
     Start();
@@ -182,8 +157,7 @@ void MatchMaker::InitUsers(QMap<QString, QSharedPointer<Player>>* players)
         std::back_inserter(m_users),
         [](const QSharedPointer<Player>& player) -> QString
         {
-            QString userName = player.get() != NULL ? player->GetUseName() : "";
-            return (player.get() != NULL && !player->GetPreferredGames().isEmpty()) ? userName
-                                                                                    : QString();  // Ignore empty strings
+          QString userName = player.get() != nullptr ? player->GetUseName() : "";
+          return (player.get() != nullptr && !player->GetPreferredGames().isEmpty()) ? userName : QString();
         });
 }

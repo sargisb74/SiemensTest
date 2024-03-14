@@ -21,41 +21,33 @@ using namespace std;
 
 enum class GameResult
 {
-    NO_WINNER, FIRST, SECOND
+    FIRST, SECOND
 };
+
+#define RUN_MATCHES_FREQUENCY  100
 
 class MatchMaker : public QObject
 {
-Q_OBJECT
+ Q_OBJECT
 
-public:
+ public:
     ~MatchMaker() override
     {
         m_timer->stop();
     };
-
-    void SetPlayers(QMap<QString, QSharedPointer<Player>>* players)
-    {
-        m_players = players;
-    }
 
     void SetUserDb(UsersDB& userDB)
     {
         m_userDB = &userDB;
     }
 
-    /*void SetTreeModel(DashboardTreeModel* treeModel)
-    {
-        m_treeModel = treeModel;
-    }*/
-
     void Start();
 
-    void Initialise(QMap<QString, QSharedPointer<Player>>* , UsersDB& , DashboardTreeModel* );
+    void Initialise(QMap<QString, QSharedPointer<Player>>*, UsersDB&, DashboardTreeModel*);
 
     void InitUsers(QMap<QString, QSharedPointer<Player>>*);
 
-private:
+ private:
 
     QTimer* m_timer = nullptr;
     UsersDB* m_userDB{};
@@ -64,12 +56,11 @@ private:
     QMap<QString, QSharedPointer<Player>>* m_players{};
 
     void performBackgroundTask();
-    void UpdateWinner(Player*);
-    void ExecuteGame(Player*, Player*);
+    void UpdateWinner(Player*, const QString&);
+    void ExecuteGame(Player*, Player*, const QString&);
 
-public slots:
+ public slots:
     void RunMatches();
 };
-
 
 #endif //PLAYER_H

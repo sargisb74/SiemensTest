@@ -2,27 +2,14 @@
 // Created by Sargis Boyajyan on 23.02.24.
 //
 
-// You may need to build the project (run Qt uic code generator) to get "ui_main_wnd.h" resolved
-
-#include <QMessageBox>
 #include <QDir>
-#include <iostream>
-#include <QRandomGenerator>
-#include <QThread>
-#include <QAbstractEventDispatcher>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
 #include <QProcessEnvironment>
 #include "PlayersSortFilterProxyModel.h"
-#include "PlayersModelDelegate.h"
 #include "main_wnd.h"
 #include "ui_main_wnd.h"
-#include "add_user_dialog.h"
 
-
-MainWnd::MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mMyDelegate)
-    : QMainWindow(parent), ui(new Ui::MainWnd)//, m_tableModel(mModel), m_myDelegate(mMyDelegate)
+MainWnd::MainWnd(QWidget* parent)
+    : QMainWindow(parent), ui(new Ui::MainWnd)
 {
     ui->setupUi(this);
 
@@ -33,14 +20,15 @@ MainWnd::MainWnd(QWidget* parent, PlayersModel* mModel, PlayersModelDelegate* mM
 
 void MainWnd::InitializeUIComponents()
 {
-    m_userDB->connectToDataBase();
+    m_userDB->ConnectToDataBase();
 
     InitializeViews();
 
     ui->menuEdit->setTitle(ui->menuEdit->title().prepend(QString::fromUtf8("\u200C")));
     ui->menuView->setTitle(ui->menuView->title().prepend(QString::fromUtf8("\u200C")));
 
-    ui->tableView->verticalHeader()->setFixedWidth(ui->tableView->columnWidth(0));
+    ui->tableView->verticalHeader()->setFixedWidth(ui->tableView->
+        columnWidth(static_cast<int>(UserTableColumns::USERNAME_COL)));
     ui->status_line_edit->hide();
 
     ConnectSignalsToSlots();
@@ -52,7 +40,7 @@ void MainWnd::InitializeViews()
 {
     PopulateUsers();
     auto* proxyModel = new PlayersSortFilterProxyModel(this);
-    m_tableModel = new PlayersModel(1, 4, this, proxyModel);
+    m_tableModel = new PlayersModel(1, static_cast<int>(UserTableColumns::USER_COL_SIZE), this);
     m_treeModel = new DashboardTreeModel();
 
     proxyModel->setSourceModel(m_tableModel);
@@ -65,7 +53,6 @@ void MainWnd::InitializeViews()
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableView->verticalHeader()->setFixedWidth(ui->tableView->columnWidth(0));
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
-    // Apply stylesheets to customize the header appearance
     ui->tableView->horizontalHeader()->setStyleSheet(
         "QHeaderView::section {"
         "    border: 1px solid #d0d0d0;"
@@ -89,19 +76,18 @@ void MainWnd::InitializeViews()
         "}"
     );
 
-    //m_tableModel->populateData(m_players.values().toVector());
-    m_tableModel->populateData(m_players.values());
-
     m_myDelegate = new PlayersModelDelegate(this);
+
+    m_tableModel->PopulateData(m_players.values());
+
     ui->tableView->setItemDelegate(m_myDelegate);
     ui->tableView->setModel(proxyModel);
     ui->tableView->verticalHeader()->show();
-    ui->tableView->setSpan(m_tableModel->rowCount() - 1, 1, 1, m_tableModel->columnCount());
+    ui->tableView->setSpan(m_tableModel->rowCount() - 1,
+        static_cast<int>(UserTableColumns::USERNAME_COL), 1, m_tableModel->columnCount());
 
     ui->treeView->setModel(m_treeModel);
-
     ui->treeView->setItemDelegate(m_myDelegate);
-
     ui->treeView->expandAll();
 }
 
@@ -109,7 +95,6 @@ void MainWnd::ConnectSignalsToSlots()
 {
     auto* addUserMenuItem = new QAction("Add User", this);
     auto* removeUserMenuItem = new QAction("Remove User", this);
-    /* Set the actions to the menu */
     m_contextMenu.addAction(addUserMenuItem);
     m_contextMenu.addAction(removeUserMenuItem);
 
@@ -117,14 +102,13 @@ void MainWnd::ConnectSignalsToSlots()
 
     connect(ui->tableView->horizontalHeader(), SIGNAL(sortIndicatorChanged(int, Qt::SortOrder)),
         this, SLOT(sortIndicatorChangedSlot(int, Qt::SortOrder)));
-    // Connect SLOT to context menu
-    connect(ui->tableView, &QTableWidget::customContextMenuRequested, this,
+    connect(ui->tableView, &QTableView::customContextMenuRequested, this,
         &MainWnd::slotCustomMenuRequested);
     connect(addUserMenuItem, SIGNAL(triggered()), this,
         SLOT(on_action_Add_user_triggered()));
     connect(removeUserMenuItem, SIGNAL(triggered()), this,
         SLOT(on_action_Remove_user_triggered()));
-    connect(m_timerShowError, SIGNAL(timeout()), this, SLOT(ShowError()));
+    connect(m_timerShowError, SIGNAL(timeout()), this, SLOT(showError()));
 }
 
 void MainWnd::AddUser()
@@ -133,12 +117,13 @@ void MainWnd::AddUser()
     if (m_addUserDlg.exec() == QDialog::Accepted)
     {
         ui->tableView->setSortingEnabled(false);
-        ui->tableView->setSpan(m_tableModel->rowCount() - 1, 1, 1, 1);
+        ui->tableView->setSpan(m_tableModel->rowCount() - 1,
+            static_cast<int>(UserTableColumns::USERNAME_COL), 1, 1);
 
         QString user = m_addUserDlg.getUsername();
         QStringList games = m_addUserDlg.getPreferredGames();
         QString error;
-        if (!m_userDB->insertIntoUserTable(QVariantList() << user
+        if (!m_userDB->InsertIntoUserTable(QVariantList() << user
                                                           << m_addUserDlg.getFirstName()
                                                           << m_addUserDlg.getLastName()
                                                           << games.join(", ")
@@ -146,26 +131,18 @@ void MainWnd::AddUser()
         {
             ui->status_line_edit->show();
             ui->status_line_edit->setText(error);
-            m_timerShowError->start(5000);
+            m_timerShowError->start(SHOW_ERROR_TIMEOUT);
 
-            ui->tableView->setSpan(m_tableModel->rowCount() - 1, 1, 1, m_tableModel->columnCount());
+            ui->tableView->setSpan(m_tableModel->rowCount() - 1,
+                static_cast<int>(UserTableColumns::USERNAME_COL), 1,
+                m_tableModel->columnCount());
 
             return;
         }
-        for (const auto& str: std::as_const(games))
+        for (const auto& str : std::as_const(games))
         {
-            m_userDB->insertIntoUser_RatingsTable(QVariantList() << m_addUserDlg.getUsername() <<
+            m_userDB->InsertIntoUser_RatingsTable(QVariantList() << m_addUserDlg.getUsername() <<
                                                                  str << QString::number(0));
-            /*QList<QTreeWidgetItem*> items = ui->treeView->findItems(str, Qt::MatchExactly);
-            if (items.count() == 0)
-            {
-                addTreeRoot(str, "");
-            }
-            else
-                for (QTreeWidgetItem* item: items)
-                {
-                    addTreeChild(item, m_addUserDlg.getUsername(), QString::number(0));
-                }*/
         }
 
         m_treeModel->AppendUserGames(user, games);
@@ -173,37 +150,31 @@ void MainWnd::AddUser()
         ui->treeView->expandAll();
 
         QMap<QString, int> gameToRating;
-        for (const QString& str: games)
+        for (const QString& str : games)
         {
             gameToRating[str] = 0;
         }
 
         m_tableModel->insertRow(m_tableModel->rowCount(QModelIndex()));
-        int newRow = pModel->rowCount() + 1;//m_tableModel->rowCount(QModelIndex()) - 1;
+        int newRow = pModel->rowCount() + 1;
         QString userName = m_addUserDlg.getUsername();
         QSharedPointer<Player> player = QSharedPointer<Player>::create(
             m_addUserDlg.getUsername(),
             m_addUserDlg.getFirstName(),
             m_addUserDlg.getLastName(),
             std::move(gameToRating));
-        m_tableModel->appendData(player, newRow);
+
+        m_tableModel->AppendData(player, newRow);
         pModel->invalidate();
-        //for (int i = 0; i < pModel->rowCount(); i++)
-        //{
-            //QModelIndex proxyIndex = pModel->index(i, 0);
-
-            // Get the item text from the proxy model
-            //QString username = pModel->data(proxyIndex, Qt::DisplayRole).toString();
-        //}
-
         m_players[userName] = player;
         m_maker.InitUsers(&m_players);
 
-        int plcount = m_tableModel->GetPlayersCount();
+        int count = m_tableModel->GetPlayersCount();
         m_tableModel->SetLastItemSection(GetLastItemSection());
         ui->tableView->verticalHeader()
-            ->moveSection(m_tableModel->GetLastItemRowToSection(), /*m_tableModel->rowCount()*/plcount - 1);
-        ui->tableView->setSpan(m_tableModel->rowCount() - 1, 1, 1, m_tableModel->columnCount());
+            ->moveSection(m_tableModel->GetLastItemRowToSection(), count - 1);
+        ui->tableView->setSpan(m_tableModel->rowCount() - 1,
+            static_cast<int>(UserTableColumns::USERNAME_COL), 1, m_tableModel->columnCount());
     }
 
     m_tableModel->SetVerticalHeaderSize(pModel->rowCount());
@@ -225,17 +196,28 @@ void MainWnd::PopulateUsers()
         QString user = query.value(0).toString();
         userToGame[user] = m_userDB->GetGameToRatingMap(user, games);
 
+        //query.value(1) - First Name, query.value(2) - Last Name
         m_players[user] = QSharedPointer<Player>::create(user, query.value(1).toString(),
             query.value(2).toString(), std::move(userToGame[user]));
     }
-
-    m_players["last"] = QSharedPointer<Player>::create("+Add User", "",
-        "", std::move(QMap<QString, int>()));
 };
-
 
 void MainWnd::PopulateUsersTables()
 {
+    QList<QSharedPointer<Player>> players = m_players.values();
+    for (const QSharedPointer<Player>& player : players)
+    {
+        QString user = player->GetUseName();
+        for (auto [game, rating] : player->GetRatingByGame().asKeyValueRange())
+        {
+            QSqlQuery query = m_userDB->GetUserRating(user, game);
+            for (; query.next();)
+            {
+                player->SetRating(game, query.value(1).toInt());
+            }
+        }
+    }
+
     m_treeModel->PopulateDashboard(m_players);
     ui->treeView->expandAll();
 }
@@ -258,29 +240,27 @@ void MainWnd::on_action_Remove_user_triggered()
     QList<QModelIndex> selectedIndexes = ui->tableView->selectionModel()->selectedIndexes();
     QSet<int> selectedRows;
 
-    for (const auto& index: selectedIndexes)
+    for (const auto& index : selectedIndexes)
     {
         selectedRows.insert(index.row());
     }
 
-    for (int row: selectedRows)
+    for (int row : selectedRows)
     {
         if (row == m_tableModel->rowCount() - 1)
         {
             continue;
         }
 
-        QModelIndex proxyIndex = pModel->index(row, 0);
+        QModelIndex proxyIndex = pModel->index(row, static_cast<int>(UserTableColumns::USERNAME_COL));
 
-        // Map to the source model to get the original item
         QModelIndex sourceIndex = pModel->mapToSource(proxyIndex);
 
-        // Get the item text from the source model
         QString userName = sourceIndex.data(Qt::DisplayRole).toString();
-        m_userDB->removeFromUserTable(userName);
-        m_userDB->removeFromUser_RatingsTable(userName);
+        m_userDB->RemoveFromUserTable(userName);
+        m_userDB->RemoveFromUser_RatingsTable(userName);
 
-        m_tableModel->removeData(userName);
+        m_tableModel->RemoveData(userName);
         pModel->removeRow(row);
 
         m_tableModel->SetLastItemSection(GetLastItemSection());
@@ -325,7 +305,8 @@ void MainWnd::slotCustomMenuRequested(const QPoint& pos)
     QModelIndex index = ui->tableView->indexAt(pos);
 
     if (!index.isValid() ||
-        (index.column() == 0 && index.row() == ui->tableView->model()->rowCount() - 1))
+        (index.column() == static_cast<int>(UserTableColumns::USERNAME_COL) &&
+            index.row() == ui->tableView->model()->rowCount() - 1))
     {
         m_contextMenu.actions().at(1)->setDisabled(true);
     }
@@ -339,7 +320,7 @@ void MainWnd::slotCustomMenuRequested(const QPoint& pos)
 
 void MainWnd::sortIndicatorChangedSlot(int col, Qt::SortOrder sortType)
 {
-    if (col == 3)
+    if (col == static_cast<int>(UserTableColumns::GAMES_COL))
     {
         ui->tableView->setSortingEnabled(false);
     }
@@ -363,7 +344,8 @@ void MainWnd::on_actionSave_the_Dashboard_to_File_triggered()
 
 void MainWnd::on_tableView_clicked(const QModelIndex& index)
 {
-    if (index.column() == 0 and index.row() == m_tableModel->GetLastItemRowToSection())
+    if (index.column() == static_cast<int>(UserTableColumns::USERNAME_COL) and
+        index.row() == m_tableModel->GetLastItemRowToSection())
     {
         AddUser();
     }
@@ -373,15 +355,19 @@ void MainWnd::on_filterPushButton_clicked()
 {
     QString filter = ui->filterLineEdit->text();
     auto* pModel = dynamic_cast<PlayersSortFilterProxyModel*>(ui->tableView->model());
-    pModel->setFilterRegularExpression(filter);
 
     if (filter.trimmed().isEmpty())
     {
+        ui->tableView->setSpan(pModel->rowCount() - 1,
+            static_cast<int>(UserTableColumns::USERNAME_COL), 1, 1);
         pModel->setFilterRegularExpression(filter);
-        m_tableModel->SetVerticalHeaderSize(pModel->rowCount());
+        pModel->invalidate();
         int lastSection = GetLastItemSection();
         ui->tableView->verticalHeader()->moveSection(lastSection, pModel->rowCount() - 1);
+        ui->tableView->setSpan(m_tableModel->rowCount() - 1,
+            static_cast<int>(UserTableColumns::USERNAME_COL), 1, m_tableModel->columnCount());
         m_tableModel->SetLastItemSection(lastSection);
+        m_tableModel->SetVerticalHeaderSize(pModel->rowCount());
     }
     else
     {
@@ -390,12 +376,14 @@ void MainWnd::on_filterPushButton_clicked()
 
         int lastSection = GetLastItemSection();
         ui->tableView->verticalHeader()->moveSection(lastSection, pModel->rowCount() - 1);
+        ui->tableView->setSpan(pModel->rowCount() - 1,
+            static_cast<int>(UserTableColumns::USERNAME_COL), 1, m_tableModel->columnCount());
         m_tableModel->SetLastItemSection(pModel->rowCount() - 1);
         m_tableModel->SetVerticalHeaderSize(pModel->rowCount());
     }
 }
 
-void MainWnd::ShowError()
+void MainWnd::showError()
 {
     ui->status_line_edit->hide();
 }

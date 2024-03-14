@@ -29,31 +29,30 @@
 
 class UsersDB : public QObject
 {
-Q_OBJECT
-public:
+ Q_OBJECT
+ public:
     explicit UsersDB(QObject* parent = nullptr);
     ~UsersDB() override;
 
-    void connectToDataBase();
-    static bool insertIntoUserTable(const QVariantList&, QString&);
-    static bool insertIntoUser_RatingsTable(const QVariantList&);
-    static bool removeFromUserTable(const QString&);
-    static bool removeFromUser_RatingsTable(const QString&);
+    void ConnectToDataBase();
+    static bool InsertIntoUserTable(const QVariantList&, QString&);
+    static bool InsertIntoUser_RatingsTable(const QVariantList&);
+    static bool RemoveFromUserTable(const QString&);
+    static bool RemoveFromUser_RatingsTable(const QString&);
     static bool UpdateRating(const QString&, const QString&, int);
-    QStringList GetUserByRatingOfOpponent(const QString&, const QString&, int);
+    static QStringList GetUserByRatingOfOpponent(const QString&, const QString&, int);
     static QMap<QString, int> GetGameToRatingMap(const QString&, const QString&);
+    static QSqlQuery GetUserRating(const QString&, const QString&);
 
-private:
-    QSqlDatabase dbUsers;
+ private:
+    QSqlDatabase m_dbUsers;
 
-private:
-    bool openDataBase();
-    bool restoreDataBase();
-    void closeDataBase();
-    static bool createUserTable();
-    static bool createUserRatingsTable();
-    static bool UserExists(const QString&);
+ private:
+    bool OpenDataBase();
+    bool RestoreDataBase();
+    void CloseDataBase();
+    static bool CreateUserTable();
+    static bool CreateUserRatingsTable();
 };
-
 
 #endif //MATCH_MAKER_USERSDB_H

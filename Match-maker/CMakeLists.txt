@@ -32,7 +32,6 @@ add_executable(Match_maker main.cpp
         PlayersSortFilterProxyModel.h
         PlayersSortFilterProxyModel.cpp
         PlayersModel.cpp
-        PlayersModelDelegate.cpp
         DashboardTreeModel.h
         DashboardTreeModel.cpp
         CustomTreeItems.h

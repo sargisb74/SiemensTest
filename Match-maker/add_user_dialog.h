@@ -7,38 +7,36 @@
 
 #include <QDialog>
 
-
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
-class AddUserDialog;
+    class AddUserDialog;
 }
 QT_END_NAMESPACE
 
-class AddUserDialog: public QDialog
+class AddUserDialog : public QDialog
 {
-Q_OBJECT
+ Q_OBJECT
 
-public:
-	explicit AddUserDialog(QWidget *parent = nullptr);
+ public:
+    explicit AddUserDialog(QWidget* parent = nullptr);
 
-	~AddUserDialog() override;
+    ~AddUserDialog() override;
 
-public:
-	QString getUsername();
+ public:
+    QString getUsername();
 
-	QString getFirstName();
+    QString getFirstName();
 
-	QString getLastName();
+    QString getLastName();
 
-	QStringList getPreferredGames();
+    QStringList getPreferredGames();
 
-private slots:
-	void validateAndAccept();
+ private slots:
+    void validateAndAccept();
 
-private:
-	Ui::AddUserDialog *ui;
+ private:
+    Ui::AddUserDialog* ui;
 };
-
 
 #endif //MATCH_MAKER_ADD_USER_DIALOG_H

@@ -10,14 +10,17 @@ enum class State
     FREE, WAITING, BUSY
 };
 
+#define USER_WAIT_TIMEOUT 3000
+#define USER_FREE_TIME 2000
+
 #include <QString>
 #include <QTimer>
 #include <QMap>
 
 class Player : public QObject
 {
-Q_OBJECT
-public:
+ Q_OBJECT
+ public:
     Player() = default;
     Player(QString user, QString firstName, QString lastName, const QMap<QString, int>&& gameToRating);
 
@@ -70,9 +73,9 @@ public:
 
     ~Player() override;
 
-private:
+ private:
 
-private:
+ private:
     QString m_userName;
     QString m_firstName;
     QString m_lastName;
@@ -81,9 +84,8 @@ private:
 
     State m_state = State::FREE;
     QTimer* m_timerRequest = nullptr;
-public slots:
+ public slots:
     void requestMatch();
 };
-
 
 #endif //PLAYER_H
