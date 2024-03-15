@@ -7,74 +7,85 @@
 
 enum class State
 {
-	FREE, WAITING, Busy
+    FREE, WAITING, BUSY
 };
+
+#define USER_WAIT_TIMEOUT 3000
+#define USER_FREE_TIME 2000
 
 #include <QString>
 #include <QTimer>
 #include <QMap>
 
-class Player: public QObject
+class Player : public QObject
 {
-Q_OBJECT
-public:
-	Player() = default;
-	Player(QString user, const QMap<QString, int> &&gameToRating)
-		: m_userName(std::move(user)), m_ratingByGame(gameToRating)
-	{
-		m_timerRequest = new QTimer(this);
-		connect(m_timerRequest, SIGNAL(timeout()), this, SLOT(requestMatch()));
-		m_timerRequest->start(2000);
-	}
+ Q_OBJECT
+ public:
+    Player() = default;
+    Player(QString user, QString firstName, QString lastName, const QMap<QString, int>&& gameToRating);
 
-	QString GetUseName()
-	{
-		return m_userName;
-	}
+    QString GetUseName()
+    {
+        return m_userName;
+    }
 
-	State GetState()
-	{
-		return m_state;
-	}
+    QString GetFirstName()
+    {
+        return m_firstName;
+    }
 
-	void SetState(State state)
-	{
-		m_state = state;
-	}
+    QString GetLastName()
+    {
+        return m_lastName;
+    }
 
-	QString GetCurrentGame()
-	{
-		return m_currentGame;
-	}
+    State GetState()
+    {
+        return m_state;
+    }
 
-	int GetRating(const QString &game)
-	{
-		return m_ratingByGame[game];
-	}
+    void SetState(State state)
+    {
+        m_state = state;
+    }
 
-	void SetRating(const QString &game, int rating)
-	{
-		m_ratingByGame[game] = rating;
-	}
+    QString GetCurrentGame()
+    {
+        return m_currentGame;
+    }
 
-	~Player() override
-	{
-		m_timerRequest->stop();
-		delete m_timerRequest;
-	};
+    int GetRating(const QString& game)
+    {
+        return m_ratingByGame[game];
+    }
 
-private:
+    const QMap<QString, int>& GetRatingByGame()
+    {
+        return m_ratingByGame;
+    }
 
-private:
-	QString m_userName;
-	QString m_currentGame;
-	QMap<QString, int> m_ratingByGame;
+    void SetRating(const QString& game, int rating)
+    {
+        m_ratingByGame[game] = rating;
+    }
 
-	State m_state = State::FREE;
-	QTimer *m_timerRequest = nullptr;
-public slots:
-	void requestMatch();
+    QString GetPreferredGames();
+
+    ~Player() override;
+
+ private:
+
+ private:
+    QString m_userName;
+    QString m_firstName;
+    QString m_lastName;
+    QString m_currentGame;
+    QMap<QString, int> m_ratingByGame;
+
+    State m_state = State::FREE;
+    QTimer* m_timerRequest = nullptr;
+ public slots:
+    void requestMatch();
 };
-
 
 #endif //PLAYER_H

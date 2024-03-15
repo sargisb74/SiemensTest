@@ -28,6 +28,15 @@ add_executable(Match_maker main.cpp
         Player.h
         MatchMaker.cpp
         MatchMaker.h
+        PlayersModelDelegate.h
+        PlayersSortFilterProxyModel.h
+        PlayersSortFilterProxyModel.cpp
+        PlayersModel.cpp
+        DashboardTreeModel.h
+        DashboardTreeModel.cpp
+        CustomTreeItems.h
+        CustomTreeItems.cpp
+
 
 
 )

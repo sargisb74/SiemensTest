@@ -14,89 +14,53 @@
 #include <unordered_set>
 #include <QMutex>
 #include "Player.h"
+#include "DashboardTreeModel.h"
 #include "UsersDB.h"
 
 using namespace std;
 
 enum class GameResult
 {
-	NO_WINNER, FIRST, SECOND
+    FIRST, SECOND
 };
 
-class MatchMaker: public QObject
+#define RUN_MATCHES_FREQUENCY  100
+
+class MatchMaker : public QObject
 {
-Q_OBJECT
+ Q_OBJECT
 
-public:
-	map<QString, unique_ptr<Player>> *m_players{};
+ public:
+    ~MatchMaker() override
+    {
+        m_timer->stop();
+    };
 
-	~MatchMaker() override
-	{
-		m_timer->stop();
-	};
+    void SetUserDb(UsersDB& userDB)
+    {
+        m_userDB = &userDB;
+    }
 
-	void SetPlayers(map<QString, unique_ptr<Player>> *players)
-	{
-		m_players = players;
-	}
+    void Start();
 
-	void SetUserDb(UsersDB &userDB)
-	{
-		m_userDB = &userDB;
-	}
+    void Initialise(QMap<QString, QSharedPointer<Player>>*, UsersDB&, DashboardTreeModel*);
 
-	void SetTreeWidget(QTreeWidget *treeWidget)
-	{
-		m_treeWidget = treeWidget;
-	}
+    void InitUsers(QMap<QString, QSharedPointer<Player>>*);
 
-	void Start()
-	{
-		m_timer = new QTimer(this);
-		connect(m_timer, SIGNAL(timeout()), this, SLOT(RunMatches()));
-		m_timer->start(10);
-	}
+ private:
 
-	void Initialise(map<QString, unique_ptr<Player>> *players, UsersDB &userDB, QTreeWidget *treeWidget)
-	{
-		m_players = players;
-		m_userDB = &userDB;
-		m_treeWidget = treeWidget;
+    QTimer* m_timer = nullptr;
+    UsersDB* m_userDB{};
+    DashboardTreeModel* m_treeModel{};
+    QVector<QString> m_users;
+    QMap<QString, QSharedPointer<Player>>* m_players{};
 
-		std::transform(
-			m_players->begin(),
-			m_players->end(),
-			std::back_inserter(m_users),
-			[](const std::map<QString, unique_ptr<Player>>::value_type &pair)
-			{ return pair.first; });
+    void performBackgroundTask();
+    void UpdateWinner(Player*, const QString&);
+    void ExecuteGame(Player*, Player*, const QString&);
 
-		Start();
-	}
-
-	void InitUsers()
-	{
-		m_users.clear();
-		std::transform(
-			m_players->begin(),
-			m_players->end(),
-			std::back_inserter(m_users),
-			[](const std::map<QString, unique_ptr<Player>>::value_type &pair)
-			{ return pair.first; });
-	}
-
-private:
-
-	QTimer *m_timer = nullptr;
-	UsersDB *m_userDB{};
-	QTreeWidget *m_treeWidget{};
-	std::vector<QString> m_users;
-
-	void performBackgroundTask();
-	void UpdateWinner(Player &);
-	static GameResult ExecuteGame(const QString &);
-public slots:
-	void RunMatches();
+ public slots:
+    void RunMatches();
 };
-
 
 #endif //PLAYER_H
